@@ -11,7 +11,7 @@
     - [Go to the project directory](#go-to-the-project-directory)
     - [Install dependencies](#install-dependencies)
     - [Create .env file](#create-env-file)
-    - [Start Server](#start-server)
+    - [Start server](#start-server)
   - [Authors](#authors)
   - [Build with](#build-with)
 
@@ -66,7 +66,7 @@ DATABASE_NAME=
 
 ```
 
-### Start Server
+### Start server
 
 bash
 
