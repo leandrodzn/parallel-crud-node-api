@@ -10,7 +10,7 @@ let config = {
   host: process.env.DATABASE_HOST,
   port: process.env.DATABASE_PORT,
   dialect: "mysql",
-  logging_db: false,
+  logging: false,
 };
 
 const sequelize = new Sequelize(
