@@ -11,7 +11,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const basename = path.basename(__filename);
 
-const connection = {}; // Objeto para almacenar los modelos
+const connection = {}; // Object to store the models
 
 // Function to load all models dynamically
 const loadModels = async () => {
@@ -54,12 +54,11 @@ await loadModels();
 connection.init = async () => {
   try {
     await sequelize.authenticate(); // Test the connection to the database
-    await sequelize.sync({ alter: true }); // Synchronize the models with the database
+
+    console.log("Connection has been established successfully.");
   } catch (error) {
     throw new Error({ msg: "Error connecting to the database", error });
   }
 };
-
-connection.init();
 
 export default connection;
