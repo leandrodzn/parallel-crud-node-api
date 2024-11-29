@@ -9,7 +9,7 @@ export const getAlbums = async (req, res) => {
 
     const count = await Album.count();
 
-    const numWorkers = num_workers;
+    const numWorkers = parseInt(num_workers, 10) || 1;
 
     const condition = {}; // Define the condition to filter the albums
 

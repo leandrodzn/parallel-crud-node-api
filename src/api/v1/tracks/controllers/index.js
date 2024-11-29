@@ -9,11 +9,11 @@ export const getTracks = async (req, res) => {
 
     const count = await Track.count();
 
-    const numWorkers = num_workers;
+    const numWorkers = parseInt(num_workers, 10) || 1;
 
-    const condition = {}; // Define the condition to filter the albums
+    const condition = {}; // Define the condition to filter the tracks
 
-    const limit = Math.ceil(count / numWorkers); // Divide the albums between the workers
+    const limit = Math.ceil(count / numWorkers); // Divide the tracks between the workers
 
     console.time("totalTime"); // Start the timer
 
@@ -58,6 +58,6 @@ export const getTracks = async (req, res) => {
     res.status(200).json(allTracks);
   } catch (error) {
     console.timeEnd("totalTime"); // Stop the timer
-    res.status(500).json({ msg: "Error loading albums", error });
+    res.status(500).json({ msg: "Error loading tracks", error });
   }
 };
