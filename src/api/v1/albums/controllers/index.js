@@ -1,7 +1,8 @@
 import { Worker } from "node:worker_threads"; // Import the Worker class from the worker_threads module
 import connection from "../../../../models/index.js";
+import os from "os"; // Módulo para obtener el número de núcleos del procesador
 
-const { Album } = connection;
+const { Album, Artist } = connection;
 
 export const getAlbums = async (req, res) => {
   try {
@@ -59,5 +60,68 @@ export const getAlbums = async (req, res) => {
   } catch (error) {
     console.timeEnd("totalTime"); // Stop the timer
     res.status(500).json({ msg: "Error loading albums", error });
+  }
+};
+
+export const postAlbums = async (req, res) => {
+  try {
+    const { albums } = req.body; // `albums` es un array de objetos con Title y ArtistId
+
+    if (!Array.isArray(albums) || albums.length === 0) {
+      return res.status(400).json({ message: "No albums provided." });
+    }
+
+    // Calcular el número de trabajadores según la cantidad de núcleos disponibles
+    const numCores = os.cpus().length; // Obtiene el número de núcleos de la CPU
+    const numWorkers = Math.min(numCores, albums.length); // Usamos el menor valor entre núcleos y el número de álbumes
+
+    console.time("totalTime"); // Inicia el tiempo total
+
+    // Divide los datos entre los trabajadores
+    const chunkSize = Math.ceil(albums.length / numWorkers);
+    const chunks = Array.from({ length: numWorkers }, (_, i) =>
+      albums.slice(i * chunkSize, (i + 1) * chunkSize)
+    );
+
+    // Crea los trabajadores y procesa cada chunk
+    const workers = chunks.map(
+      (chunk, i) =>
+        new Promise((resolve, reject) => {
+          const workerUrl = new URL("./post.js", import.meta.url);
+
+          const worker = new Worker(workerUrl, {
+            workerData: chunk, // Pasa cada chunk al worker
+          });
+
+          worker.on("message", (data) => {
+            console.log(`Worker ${i + 1} finished!`);
+            resolve(data); // Devuelve los resultados
+          });
+          worker.on("error", (err) => reject(err)); // Maneja errores
+          worker.on("exit", (code) => {
+            if (code !== 0)
+              reject(new Error(`Worker exited with code ${code}`));
+          });
+        })
+    );
+
+    // Espera a que todos los trabajadores terminen
+    const results = await Promise.all(workers);
+
+    console.timeEnd("totalTime"); // Termina el tiempo total
+
+    // Combina los resultados
+    const insertedAlbums = results.flat();
+
+    res.status(201).json({
+      message: "Albums processed successfully.",
+      albums: insertedAlbums,
+    });
+  } catch (error) {
+    console.timeEnd("totalTime"); // Asegúrate de terminar el temporizador
+    res.status(500).json({
+      message: "Error processing albums.",
+      error: error.message,
+    });
   }
 };
