@@ -25,7 +25,9 @@ export const getTracks = async (req, res) => {
           const offset = Math.ceil((count / numWorkers) * i); // Calculate offset for each worker
 
           // Create a new worker
-          const worker = new Worker(new URL("./get.js", import.meta.url), {
+          const workerUrl = new URL("./get.js", import.meta.url);
+
+          const worker = new Worker(workerUrl, {
             workerData: {
               offset,
               limit,
