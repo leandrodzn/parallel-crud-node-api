@@ -50,10 +50,10 @@ export const getAlbums = async (req, res) => {
     // Wait for all workers to finish
     const results = await Promise.all(workers);
 
+    console.timeEnd("totalTime"); // Stop the timer
+
     // Use flat to flatten the results if they are arrays
     const allAlbums = results.flat();
-
-    console.timeEnd("totalTime"); // Stop the timer
 
     res.status(200).json(allAlbums);
   } catch (error) {
