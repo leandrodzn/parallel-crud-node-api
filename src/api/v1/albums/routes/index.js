@@ -1,6 +1,6 @@
 "use strict";
 
-import { getAlbums, postAlbums } from "../controllers/index.js";
+import { getAlbums, postAlbums, deleteAlbums } from "../controllers/index.js";
 
 export default {
   routes: [
@@ -13,6 +13,11 @@ export default {
       method: "post",
       path: "/albums",
       action: postAlbums,
+    },
+    {
+      method: "delete",
+      path: "/albums",
+      action: deleteAlbums,
     },
   ],
 };
