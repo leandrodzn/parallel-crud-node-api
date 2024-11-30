@@ -1,5 +1,7 @@
 import { Worker } from "node:worker_threads"; // Import the Worker class from the worker_threads module
 import connection from "../../../../models/index.js";
+import { calculateNumWorkers } from "../../../../utils/index.js";
+import os from "node:os"; // Module for interacting with the operating system
 
 const { Track } = connection;
 
@@ -9,11 +11,15 @@ export const getTracks = async (req, res) => {
 
     const count = await Track.count();
 
-    const numWorkers = parseInt(num_workers, 10) || 1;
+    const numWorkers = calculateNumWorkers(num_workers);
 
     const condition = {}; // Define the condition to filter the tracks
 
     const limit = Math.ceil(count / numWorkers); // Divide the tracks between the workers
+
+    console.log(
+      `Using ${numWorkers} worker(s) from ${os.cpus().length} CPU(s) available`
+    );
 
     console.time("totalTime"); // Start the timer
 
@@ -59,5 +65,60 @@ export const getTracks = async (req, res) => {
   } catch (error) {
     console.timeEnd("totalTime"); // Stop the timer
     res.status(500).json({ msg: "Error loading tracks", error });
+  }
+};
+
+export const deleteTracks = async (req, res) => {
+  try {
+    const { num_workers, ids } = req.body;
+
+    const numWorkers = calculateNumWorkers(num_workers);
+
+    console.log(
+      `Using ${numWorkers} worker(s) from ${os.cpus().length} CPU(s) available`
+    );
+
+    const chunkSize = Math.ceil(ids.length / numWorkers);
+
+    const workers = Array.from(
+      { length: numWorkers }, // Create an array with the number of workers
+      (_, i) =>
+        // Create a new promise for each worker
+        new Promise((resolve, reject) => {
+          const chunk = ids.slice(i * chunkSize, (i + 1) * chunkSize);
+
+          // Create a new worker
+          const workerUrl = new URL("./delete.js", import.meta.url);
+
+          const worker = new Worker(workerUrl, {
+            workerData: {
+              chunk,
+            },
+          });
+
+          worker.on("message", (data) => {
+            console.log(`Worker ${i + 1} finished!`);
+            resolve(data); // Resolves the promise with the data
+          });
+          worker.on("error", (err) => reject(err)); // Error handling
+          worker.on("exit", (code) => {
+            if (code !== 0)
+              reject(new Error(`Worker exited with code ${code}`));
+          });
+        })
+    );
+
+    // Wait for all workers to finish
+    const results = await Promise.all(workers);
+
+    res.status(200).json({
+      message: "All deletions completed successfully.",
+      results,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Error deleting tracks.",
+      error: error.message,
+    });
   }
 };
