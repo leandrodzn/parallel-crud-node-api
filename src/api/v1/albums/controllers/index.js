@@ -3,7 +3,7 @@ import connection from "../../../../models/index.js";
 import { calculateNumWorkers } from "../../../../utils/index.js";
 import os from "node:os"; // Module for interacting with the operating system
 
-const { Album, Artist } = connection;
+const { Album } = connection;
 
 export const getAlbums = async (req, res) => {
   try {
@@ -11,11 +11,15 @@ export const getAlbums = async (req, res) => {
 
     const count = await Album.count();
 
-    const numWorkers = parseInt(num_workers, 10) || 1;
+    const numWorkers = calculateNumWorkers(num_workers);
 
     const condition = {}; // Define the condition to filter the albums
 
     const limit = Math.ceil(count / numWorkers); // Divide the albums between the workers
+
+    console.log(
+      `Using ${numWorkers} worker(s) from ${os.cpus().length} CPU(s) available`
+    );
 
     console.time("totalTime"); // Start the timer
 
@@ -57,7 +61,11 @@ export const getAlbums = async (req, res) => {
     // Use flat to flatten the results if they are arrays
     const allAlbums = results.flat();
 
-    res.status(200).json(allAlbums);
+    res.status(200).json({
+      workers: numWorkers,
+      message: "Albums fetched successfully.",
+      albums: allAlbums,
+    });
   } catch (error) {
     console.timeEnd("totalTime"); // Stop the timer
     res.status(500).json({ msg: "Error loading albums", error });
