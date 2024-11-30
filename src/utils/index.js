@@ -11,8 +11,11 @@ export const calculateNumWorkers = (numWorkers, dataLength) => {
       return numWorkersReceived; // Return the number of workers received
     }
 
-    const numWorkersCalculated = Math.min(numCores, dataLength || 1); // Calculate the number of workers
-    return numWorkersCalculated;
+    if (dataLength) {
+      const numWorkersCalculated = Math.min(numCores, dataLength || 1); // Calculate the number of workers
+      return numWorkersCalculated;
+    }
+    return 1;
   } catch (error) {
     return 1; // Return 1 worker by default
   }
