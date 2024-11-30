@@ -56,6 +56,8 @@ export default (sequelize, DataTypes) => {
 
   Track.associate = (models) => {
     Track.belongsTo(models.Album, { foreignKey: "AlbumId" });
+    Track.belongsTo(models.MediaType, { foreignKey: "MediaTypeId" });
+    Track.belongsTo(models.Genre, { foreignKey: "GenreId" });
   };
 
   return Track;

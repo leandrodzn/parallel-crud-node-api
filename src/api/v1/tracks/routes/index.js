@@ -1,6 +1,6 @@
 "use strict";
 
-import { getTracks, deleteTracks } from "../controllers/index.js";
+import { getTracks, deleteTracks, postTracks } from "../controllers/index.js";
 
 export default {
   routes: [
@@ -13,6 +13,11 @@ export default {
       method: "delete",
       path: "/tracks",
       action: deleteTracks,
+    },
+    {
+      method: "post",
+      path: "/tracks",
+      action: postTracks,
     },
   ],
 };

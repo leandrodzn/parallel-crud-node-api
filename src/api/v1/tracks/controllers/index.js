@@ -122,3 +122,62 @@ export const deleteTracks = async (req, res) => {
     });
   }
 };
+
+
+export const postTracks = async (req, res) => {
+  try {
+    const { tracks, num_workers } = req.body;
+
+    if (!tracks || !Array.isArray(tracks) || tracks.length === 0) {
+      return res.status(400).json({ message: "No tracks data provided." });
+    }
+
+    // Determine the number of workers based on the input or system capabilities
+    const numWorkers = calculateNumWorkers(num_workers);
+
+    console.log(
+      `Using ${numWorkers} worker(s) from ${os.cpus().length} CPU(s) available`
+    );
+
+    const chunkSize = Math.ceil(tracks.length / numWorkers);
+
+    // Create workers for parallel processing
+    const workers = Array.from(
+      { length: numWorkers },
+      (_, i) =>
+        new Promise((resolve, reject) => {
+          const chunk = tracks.slice(i * chunkSize, (i + 1) * chunkSize);
+
+          const workerUrl = new URL("./post.js", import.meta.url);
+
+          const worker = new Worker(workerUrl, {
+            workerData: { chunk },
+          });
+
+          worker.on("message", (data) => {
+            console.log(`Worker ${i + 1} finished!`);
+            resolve(data); // Resolve the promise with worker results
+          });
+
+          worker.on("error", (err) => reject(err));
+          worker.on("exit", (code) => {
+            if (code !== 0)
+              reject(new Error(`Worker exited with code ${code}`));
+          });
+        })
+    );
+
+    // Wait for all workers to complete
+    const results = await Promise.all(workers);
+
+    res.status(200).json({
+      message: "Tracks processed successfully.",
+      results: results.flat(),
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Error creating tracks.",
+      error: error.message,
+    });
+  }
+};
