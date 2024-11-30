@@ -8,33 +8,33 @@ const processAlbums = async (albums) => {
     const results = [];
 
     for (const { Title, ArtistId } of albums) {
-      // Verifica si el artista existe
+      // Verify if the artist exists
       const artist = await Artist.findByPk(ArtistId);
 
-      // Si el artista no existe, agrega un mensaje de error
+      // If the artist does not exist, add an error to the results
       if (!artist) {
         results.push({
-          error: `El artista del álbum "${Title}" no existe`,
+          error: `Artist from album "${Title}" not found`,
           Title,
-          ArtistId
+          ArtistId,
         });
-        continue; // Salta a la siguiente iteración
+        continue; // Skip the rest of the loop
       }
 
-      // Crea el álbum asociado al artista
+      // Create the album
       const album = await Album.create({
         Title,
         ArtistId,
       });
 
-      results.push(album.toJSON()); // Serializa el álbum para enviar al hilo principal
+      results.push(album.toJSON()); // Add the album to the results
     }
 
-    parentPort.postMessage(results); // Devuelve los resultados al hilo principal
+    parentPort.postMessage(results); // Send the results to the parent thread
   } catch (error) {
     parentPort.postMessage({ error: error.message });
   }
 };
 
-// Ejecuta el procesamiento
+// Process the albums
 await processAlbums(workerData);

@@ -1,6 +1,7 @@
 import { Worker } from "node:worker_threads"; // Import the Worker class from the worker_threads module
 import connection from "../../../../models/index.js";
-import os from "os"; // Módulo para obtener el número de núcleos del procesador
+import { calculateNumWorkers } from "../../../../utils/index.js";
+import os from "node:os"; // Module for interacting with the operating system
 
 const { Album, Artist } = connection;
 
@@ -65,15 +66,17 @@ export const getAlbums = async (req, res) => {
 
 export const postAlbums = async (req, res) => {
   try {
-    const { albums } = req.body; // `albums` es un array de objetos con Title y ArtistId
+    const { albums, num_workers } = req.body; // `albums` es un array de objetos con Title y ArtistId
 
     if (!Array.isArray(albums) || albums.length === 0) {
       return res.status(400).json({ message: "No albums provided." });
     }
 
-    // Calcular el número de trabajadores según la cantidad de núcleos disponibles
-    const numCores = os.cpus().length; // Obtiene el número de núcleos de la CPU
-    const numWorkers = Math.min(numCores, albums.length); // Usamos el menor valor entre núcleos y el número de álbumes
+    const numWorkers = calculateNumWorkers(num_workers, albums.length);
+
+    console.log(
+      `Using ${numWorkers} worker(s) from ${os.cpus().length} CPU(s) available`
+    );
 
     console.time("totalTime"); // Inicia el tiempo total
 
@@ -114,6 +117,7 @@ export const postAlbums = async (req, res) => {
     const insertedAlbums = results.flat();
 
     res.status(201).json({
+      workers: numWorkers,
       message: "Albums processed successfully.",
       albums: insertedAlbums,
     });
