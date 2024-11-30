@@ -16,6 +16,7 @@
     - [Advantages](#advantages)
     - [Disadvantages or considerations](#disadvantages-or-considerations)
   - [Tests and results](#tests-and-results)
+    - [Database](#database)
     - [Request examples](#request-examples)
   - [Run locally](#run-locally)
     - [Node version](#node-version)
@@ -30,6 +31,7 @@
 ## Description
 
 Parallelizing CRUD operations on relational databases using Node.js
+
 <br>
 
 ## Parallelism
@@ -86,6 +88,10 @@ Not directly. A worker is a thread, and the operating system is responsible for 
 - Shared state: Workers do not share memory, so each one needs to fetch data separately.
 
 ## Tests and results
+
+### Database
+
+As test database we use the incremental MySQL version of [chinook_database](https://github.com/lerocha/chinook-database)
 
 ### Request examples
 
