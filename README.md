@@ -15,6 +15,8 @@
       - [Is a Worker a Core?](#is-a-worker-a-core)
     - [Advantages](#advantages)
     - [Disadvantages or considerations](#disadvantages-or-considerations)
+  - [Tests and results](#tests-and-results)
+    - [Request examples](#request-examples)
   - [Run locally](#run-locally)
     - [Node version](#node-version)
     - [Clone the project](#clone-the-project)
@@ -82,6 +84,18 @@ Not directly. A worker is a thread, and the operating system is responsible for 
 - Thread overhead: If the data is not large, the use of multiple threads may be less efficient due to the overhead of creating and communicating workers.
 - System load: Redistributing the load may saturate the CPU or the database if the number of workers is too high.
 - Shared state: Workers do not share memory, so each one needs to fetch data separately.
+
+## Tests and results
+
+### Request examples
+
+To test the API endpoints you can use the following [test requests](/request_examples/).
+
+Send request to:
+
+```sh
+  http://localhost:PORT/api/v1/ENDPOINT
+```
 
 ## Run locally
 
@@ -159,3 +173,5 @@ bash
 - [Express](https://expressjs.com/) - Framework
 - [MySQL](https://www.mysql.com/) - Database
 - [Sequelize](https://sequelize.org/) - Database ORM
+
+[requestExamplesRef]: /request-examples
