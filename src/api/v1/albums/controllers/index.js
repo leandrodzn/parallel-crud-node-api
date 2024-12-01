@@ -203,6 +203,7 @@ export const deleteAlbums = async (req, res) => {
     console.log(`Time taken: ${timeTaken} ms`);
 
     res.status(200).json({
+      workers: numWorkers,
       message: "All deletions completed successfully.",
       results,
     });

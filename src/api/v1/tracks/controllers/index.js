@@ -133,6 +133,7 @@ export const deleteTracks = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({
+      workers: numWorkers,
       message: "Error deleting tracks.",
       error: error.message,
     });
