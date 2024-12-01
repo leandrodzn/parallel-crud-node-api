@@ -2,6 +2,7 @@ import connection from "../../../../models/index.js";
 import { calculateNumWorkers } from "../../../../utils/index.js";
 import os from "node:os"; // Module for interacting with the operating system
 import { Worker } from "node:worker_threads"; // Import the Worker class from the worker_threads module
+import { performance } from "node:perf_hooks"; // Import the performance module from the perf_hooks module
 
 const { Album } = connection;
 
@@ -10,6 +11,8 @@ export const getAlbums = async (req, res) => {
     const { num_workers } = req.query;
 
     const count = await Album.count();
+
+    console.log(`Total albums: ${count}`);
 
     const numWorkers = calculateNumWorkers(num_workers);
 
@@ -21,7 +24,7 @@ export const getAlbums = async (req, res) => {
       `Using ${numWorkers} worker(s) from ${os.cpus().length} CPU(s) available`
     );
 
-    console.time("totalTime"); // Start the timer
+    const start = performance.now(); // Start the timer
 
     const workers = Array.from(
       { length: numWorkers }, // Create an array with the number of workers
@@ -56,10 +59,14 @@ export const getAlbums = async (req, res) => {
     // Wait for all workers to finish
     const results = await Promise.all(workers);
 
-    console.timeEnd("totalTime"); // Stop the timer
-
     // Use flat to flatten the results if they are arrays
     const allAlbums = results.flat();
+
+    const end = performance.now(); // Stop the timer
+
+    const timeTaken = end - start; // Calculate the total time
+
+    console.log(`Time taken: ${timeTaken} ms`);
 
     res.status(200).json({
       workers: numWorkers,
@@ -67,7 +74,6 @@ export const getAlbums = async (req, res) => {
       albums: allAlbums,
     });
   } catch (error) {
-    console.timeEnd("totalTime"); // Stop the timer
     res.status(500).json({ msg: "Error loading albums", error });
   }
 };
@@ -86,7 +92,9 @@ export const postAlbums = async (req, res) => {
       `Using ${numWorkers} worker(s) from ${os.cpus().length} CPU(s) available`
     );
 
-    console.time("totalTime"); // Start the total time
+    console.log(`Total albums: ${albums.length}`);
+
+    const start = performance.now(); // Start the timer
 
     // Divide albums into chunks
     const chunkSize = Math.ceil(albums.length / numWorkers);
@@ -119,10 +127,14 @@ export const postAlbums = async (req, res) => {
     // Wait for all workers to finish
     const results = await Promise.all(workers);
 
-    console.timeEnd("totalTime"); // Finish the total time
-
     // Flatten the results if they are arrays
     const insertedAlbums = results.flat();
+
+    const end = performance.now(); // Stop the timer
+
+    const timeTaken = end - start; // Calculate the total time
+
+    console.log(`Time taken: ${timeTaken} ms`);
 
     res.status(201).json({
       workers: numWorkers,
@@ -130,7 +142,6 @@ export const postAlbums = async (req, res) => {
       albums: insertedAlbums,
     });
   } catch (error) {
-    console.timeEnd("totalTime");
     res.status(500).json({
       message: "Error processing albums.",
       error: error.message,
@@ -149,6 +160,10 @@ export const deleteAlbums = async (req, res) => {
     );
 
     const chunkSize = Math.ceil(ids.length / numWorkers);
+
+    console.log(`Total albums: ${ids.length}`);
+
+    const start = performance.now(); // Start the timer
 
     const workers = Array.from(
       { length: numWorkers }, // Create an array with the number of workers
@@ -180,6 +195,12 @@ export const deleteAlbums = async (req, res) => {
 
     // Wait for all workers to finish
     const results = await Promise.all(workers);
+
+    const end = performance.now(); // Stop the timer
+
+    const timeTaken = end - start; // Calculate the total time
+
+    console.log(`Time taken: ${timeTaken} ms`);
 
     res.status(200).json({
       message: "All deletions completed successfully.",
