@@ -18,6 +18,8 @@
   - [Tests and results](#tests-and-results)
     - [Database](#database)
     - [Request examples](#request-examples)
+    - [Results](#results)
+      - [Albums](#albums)
   - [Run locally](#run-locally)
     - [Node version](#node-version)
     - [Clone the project](#clone-the-project)
@@ -102,6 +104,50 @@ Send request to:
 ```sh
   http://localhost:PORT/api/v1/ENDPOINT
 ```
+
+### Results
+
+The tests were performed on a computer with the following specifications:
+
+- AMD Ryzen 5 8645HS 4.3 GHz processor with 6 CPU Cores and 12 Threads.
+
+#### Albums
+
+**Create**
+
+Sending 660 album objects to create.
+
+| Worker threads | Time (milliseconds) | Speedup | Efficiency |
+| -------------- | ------------------- | ------- | ---------- |
+| **1**          | 3213.19959          | 1       | 1          |
+| **2**          | 2225.44639          | 1.44384 | 0.72192    |
+| **3**          | 1990.63120          | 1.61416 | 0.53805    |
+| **4**          | 1742.41379          | 1.84410 | 0.46102    |
+| **6**          | 1535.67530          | 2.09236 | 0.34872    |
+| **8**          | 1477.85349          | 2.21928 | 0.27741    |
+| **10**         | 1567.99890          | 2.04923 | 0.20492    |
+| **12**         | 1526.42799          | 2.10504 | 0.17542    |
+
+<br>
+
+**Read**
+
+Fetching 18147 albums.
+
+| Worker threads | Time (milliseconds) | Speedup | Efficiency |
+| -------------- | ------------------- | ------- | ---------- |
+| **1**          | 994.46590           | 1       | 1          |
+| **2**          | 877.04560           | 1.13388 | 0.56694    |
+| **3**          | 900.73999           | 1.10405 | 0.23801    |
+| **4**          | 861.67410           | 1.15410 | 0.28852    |
+| **6**          | 950.91939           | 1.04579 | 0.17429    |
+| **8**          | 924.97970           | 1.07512 | 0.13439    |
+| **10**         | 1115.14129          | 0.89178 | 0.08917    |
+| **12**         | 1259.76939          | 0.78940 | 0.06578    |
+
+<br>
+
+**Delete**
 
 ## Run locally
 
