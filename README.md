@@ -5,7 +5,7 @@
 - [Parallel CRUD operations in API with Node.js](#parallel-crud-operations-in-api-with-nodejs)
   - [Table of contents](#table-of-contents)
   - [Description](#description)
-  - [Parallelism](#parallelism)
+  - [Parallelism using Worker Threads](#parallelism-using-worker-threads)
     - [How does it work?](#how-does-it-work)
       - [Division of the workload](#division-of-the-workload)
       - [Workers creation](#workers-creation)
@@ -34,7 +34,7 @@ Parallelizing CRUD operations on relational databases using Node.js
 
 <br>
 
-## Parallelism
+## Parallelism using Worker Threads
 
 The project implements a parallel extraction, creation and deletion of data from a database using the Worker Threads API in Node.js.
 
