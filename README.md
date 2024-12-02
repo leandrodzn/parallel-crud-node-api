@@ -15,6 +15,17 @@
       - [Is a Worker a Core?](#is-a-worker-a-core)
     - [Advantages](#advantages)
     - [Disadvantages or considerations](#disadvantages-or-considerations)
+    - [Efficient memory usage](#efficient-memory-usage)
+      - [Advantages](#advantages-1)
+      - [Limitations](#limitations)
+    - [Security and exception handling in concurrent environments](#security-and-exception-handling-in-concurrent-environments)
+      - [Advantages](#advantages-2)
+      - [Limitations](#limitations-1)
+    - [Coarse-Grained parallelism](#coarse-grained-parallelism)
+      - [Advantages](#advantages-3)
+    - [Compatibility with specific parallel architectures](#compatibility-with-specific-parallel-architectures)
+      - [Advantages](#advantages-4)
+      - [Limitations](#limitations-2)
   - [Tests and results](#tests-and-results)
     - [Database](#database)
     - [Request examples](#request-examples)
@@ -89,6 +100,57 @@ Not directly. A worker is a thread, and the operating system is responsible for 
 - System load: Redistributing the load may saturate the CPU or the database if the number of workers is too high.
 - Shared state: Workers do not share memory, so each one needs to fetch data separately.
 
+### Efficient memory usage
+
+The project utilizes memory to handle data related to entities such as Tracks, Albums, Artists, and other related tables. Each thread processes a subset of data (chunk), enabling effective partitioning and reducing memory load on each thread.
+
+#### Advantages:
+
+- Avoids loading large volumes of data into main memory by processing only the subset corresponding to each thread.
+- The use of transactions ensures that changes are applied only if all steps are executed correctly, preventing unnecessary memory operations.
+
+#### Limitations:
+
+- If the chunk size is too large, it could lead to competition for memory resources.
+- Excessive use of promises and listeners in threads can increase memory consumption if not properly managed (e.g., not releasing resources after completion).
+
+### Security and exception handling in concurrent environments
+
+The project handles errors and exceptions in each thread using try-catch within critical operations, sending error details to the main thread via parentPort.
+
+#### Advantages:
+
+- In the event of a thread failure, the associated transaction is rolled back, ensuring data consistency.
+- Each thread operates independently, reducing the risk of race conditions and deadlocks.
+
+#### Limitations:
+
+- The current structure does not have a strategy for handling global critical errors at the thread level (e.g., if all threads fail).
+- There is no explicit protection against potential deadlocks in transactions.
+
+### Coarse-Grained parallelism
+
+The project adopts a coarse-grained parallelism approach, where each thread works with relatively large chunks (subsets of data such as Tracks or Albums) and performs complete tasks like validation, insertion, or deletion.
+
+#### Advantages:
+
+- Reduced synchronization overhead since threads do not need to communicate with each other.
+- Direct scalability by dividing data among the available threads.
+
+### Compatibility with specific parallel architectures
+
+The project is primarily designed to leverage multi-core CPUs using Node.js Worker Threads. However, it is not optimized for architectures like GPUs, clusters, or distributed systems.
+
+#### Advantages:
+
+- The use of Worker Threads is sufficient for systems with multiple cores, especially on modern servers.
+- The modularity of the code facilitates adaptation to other platforms.
+
+#### Limitations:
+
+- No explicit support for advanced parallel architectures, such as using GPUs for computationally intensive tasks.
+- Dependency on worker_threads limits it to Node.js environments without native support for distributed clusters.
+
 ## Tests and results
 
 ### Database
@@ -153,14 +215,14 @@ Deleting 1200 albums.
 
 | Worker threads | Time (milliseconds) | Speedup | Efficiency |
 | -------------- | ------------------- | ------- | ---------- |
-| *1*          | 650.29530           | 1       | 1          |
-| *2*          | 624.04680           | 1.04206 | 0.52103    |
-| *3*          | 648.07801           | 1.00342 | 0.33447    |
-| *4*          | 598.35488           | 1.08680 | 0.27170    |
-| *6*          | 621.24799           | 1.04675 | 0.17445    |
-| *8*          | 708.99041           | 0.91721 | 0.11465    |
-| *10*         | 724.84409           | 0.89715 | 0.08971    |
-| *12*         | 758.45451           | 0.85739 | 0.00714    |
+| _1_            | 650.29530           | 1       | 1          |
+| _2_            | 624.04680           | 1.04206 | 0.52103    |
+| _3_            | 648.07801           | 1.00342 | 0.33447    |
+| _4_            | 598.35488           | 1.08680 | 0.27170    |
+| _6_            | 621.24799           | 1.04675 | 0.17445    |
+| _8_            | 708.99041           | 0.91721 | 0.11465    |
+| _10_           | 724.84409           | 0.89715 | 0.08971    |
+| _12_           | 758.45451           | 0.85739 | 0.00714    |
 
 <br>
 
